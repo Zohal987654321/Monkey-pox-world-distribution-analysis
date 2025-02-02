@@ -1,0 +1,436 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# Note: This is the final version of my assessment intended for marking. I will upload html figure of world map created alongiwth it.Thanks
+
+# GLOBAL MONKEYPOX DATA
+# 
+# INTRODUCTION:
+# 
+# The data to be analysed in this notebook is real global data which contains details of all the reported Monkeypox cases, dated  from May, 2022 till 18 September, 2022. Though Monkeypox cases have been detected since 1971 in Central Africa, during the time of collection of this data, there has been a major outbreak of this illness all over the world. It has turned into a global pandemic and,  hence it is an important data to be analysed so as to help understand and form  inform choices and policies to better manage this situation in favour of human race.
+# 
+# SOURCE:This data has been downloaded from kaggle website.The link is https://www.kaggle.com/datasets/andrewmvd/global-monkeypox-cases. Since this data is downloaded from the source a few weeks ago, the owner of the link has modified the data and removed alot of values in columns. The modified data doesnot fulfill the criteria for this project of minimum 10 columns. So, I will be analysing based on the original data that I had downloaded with 36 columns and 69,639 rows.This data is in csv format and has string,Bool, Date,float  and int type of data. 
+#    During my analysis of this data, I noticed that Democratic Republic of Congo has disproportionately high Mortality rate with respect to confirmed and suspected cases of Monkeypox in this region, compared to other countries of the world such as United States.From this  data, I found that  United States has the highest number of reported cases of Monkeypox worldwide during this pandemic, but managed to have much lower Monkeypox-related mortality rate. This needs to be analysed. There can be a variety of reasons for it, one is the socioeconomic difference between the countries and another can be genomic distribution of the Monkeypox virus. In this notebook, I will see if there is any correlation in the data  between Monkeypox-related deaths  and poverty rates among countries affected by Monkeypox. For this I downloaded WorldBank sourced data linked here:https://worldpopulationreview.com/country-rankings/poverty-rate-by-country.This data is in csv format and has 5 columns and 173 rows.
+# 
+# Methods: In this notebook, I have extensively used Python libraries such as Pandas, Numpy, Matplotlib, Seaborn,plotly . I have used Pandas and csv libraries to import and read files.Pandas is used extensively along with its functions to work with DataFrames .Numpy functions have been used in many places. Visualisations are made using Matplotlib, seaborn and plotly libraries.
+# Procedure: I will first import the Monkepox data  and print information about the data.
+
+# In[1]:
+
+
+import pandas as pd
+import csv
+dataFrame=pd.read_csv(r"C:\Users\dzoha\OneDrive\Documents\monkeypox_df.csv",low_memory=False,sep=',')
+#to display first five rows as DataFrame
+dataFrame.head(5)
+
+
+# In[2]:
+
+
+#to display last 5 rows of data,
+dataFrame.tail(5)
+
+
+# In[3]:
+
+
+# to get information about data types
+dataFrame.info()
+
+
+# In[1]:
+
+
+#importing libraries
+import pandas as pd
+import plotly.graph_objects as go
+#reading data into a dataframe
+
+dataFrame=pd.read_csv(r"C:\Users\dzoha\OneDrive\Documents\monkeypox_df.csv",low_memory=False)
+
+#grouping monkepox counts to the countries and changing it to a list of numbers
+
+total_list=dataFrame.groupby('Country').Status.count().tolist()
+
+# Getting list of Countries, dropping any NA values
+country_list=dataFrame['Country'].dropna()
+# Changing dataFrame into a set
+country_set=set(country_list)
+# Converting set into a list
+country_list=list(country_set)
+# Sorting the list to get correct values
+country_list.sort()
+# Creating a new dataframe from above values
+
+new_df=pd.DataFrame(list(zip(country_list,total_list)), columns=['Country', 'Total_Cases'])
+# plotting a world map using plotly, defining colors of choice
+
+colors = ["#F9F9F5", "#FAFAE6", "#FCFCCB", "#FCFCAE",  "#FCF1AE", "#FCEA7D", "#FCD97D",
+          "#FCCE7D", "#FCC07D", "#FEB562", "#F9A648",  "#F98E48", "#FD8739", "#FE7519",
+          "#FE5E19", "#FA520A", "#FA2B0A", "#9B1803",  "#861604", "#651104", "#570303",]
+
+# defining the map and putting values from new dataframe created
+fig = go.Figure(data=go.Choropleth(locationmode = "country names",locations = new_df['Country'],z = new_df['Total_Cases'],
+    text = new_df['Total_Cases'],colorscale = colors,autocolorscale=False,reversescale=False,colorbar_title = 'Reported Monkeypox Cases',))
+
+fig.update_layout(title_text='Reported Monekypox cases during Monkeypox Breakout between May,2022 to 18September,2022',geo=dict(showcoastlines=True))
+
+# saving figure in html format
+fig.write_html('Monkepox_worlddistribution_figure.html', auto_open=True)
+#Note: I checked if the count in figure for each country is accurate with the help of excel data function and it is accurate for all counts of confirmed and suspected cases of Mon
+
+
+# After mapping the distribution of Monkeypox around the world in previous figure, we will look plot countries with highest number of confirmed cases of Monkeypox in a graph.
+
+# In[2]:
+
+
+# importing libraries
+
+import pandas as pd
+import matplotlib.pyplot as plt
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+# reading data 
+dataFrame=pd.read_csv(r"C:\Users\dzoha\OneDrive\Documents\monkeypox_df.csv",low_memory=False)
+# Getting countries with confirmed cases of monkepox, by grouping with cases, filling NA , 
+#sorting values in descending order of cases and plotting top 20 results in a bar graph
+
+df=dataFrame.groupby('Country').Status.value_counts().unstack().fillna(0).sort_values('confirmed',ascending=False).head(20).plot(kind='bar')
+# plotting graph, by filling details of choice
+plt.style.use('seaborn-pastel')
+plt.xlabel('country', color='r')
+plt.xticks(color='r')
+plt.ylabel('Number of Monkeypox cases', color='b')
+plt.yticks(color='b')
+title=plt.title('Countries with Highest incidences of Confirmed cases of Monkeypox outbreak in 2022')
+
+
+# From the above Bar plot of 'Countries with Highest incidence of confirmed cases of Monkeypox outbreak in 2022', 
+# we can conclude that United States has highest number of confirmed cases followed by Brazil that has less than half confirmed cases in United States. We can see that the illness is widely spread among countries of many continents.
+
+#      In the next plot, we will plot 'Countries with highest incidence of confirmed/suspected cases of Monkeypox', which will help us know if the suspected cases are higher than confirmed cases in any country. This information is important in deciding to see if there is a need to make diagnosing and testing facilities available.
+#      
+
+# In[4]:
+
+
+# Sorting data finding a combination of all suspected and confirmed cases and plotting 
+#top 10 countries with highest incidence. Only 10 values are plotted for improved visualisation.
+
+Nums=dataFrame.groupby('Country').Status.count().sort_values(ascending=False)
+# choosing bar plot of top 10 values
+Nums.head(10).plot(kind='bar')
+
+# Customising and labelling the graph
+plt.style.use('seaborn-whitegrid')
+plt.title('Countries with highest incidence of confirmed/suspected cases of  Monkeypox in 2022',color='b')
+
+
+plt.ylabel('Number of Monkeypox cases',color='y')
+plt.xlabel('Number of Monkeypox cases', color='y')
+
+
+# Comparing the above two graphs, we can clearly see that Democratic Republic of Congo is in number 7 in  combined confirmed and suspected cases as in graph' Countries with highest incidence of confirmed/suspected cases of Monkeypox in 2022', while the confirmed cases are comparatively so low that it does not even appear in top 20 in the graph of 'Incidence of confirmed cases only'.US  very high overall number of cases compared to all countries of the world.Other countries have same position in both highest incidence of confirmed cases and overall cases. Democratic Republic Of The Congo is the only country that shift positions immensely when plotted for overall cases compared to confirmed cases. This can reveal that Monkeyvirus test confirmation is not very effective in the country , which can be further investigated.
+#   Next, we will gather information about most common symptoms of Monkeypox illness and plot a graph .
+
+# In[5]:
+
+
+# Extracting common symptoms of confirmed cases of Monkeypox 
+common_symptoms=dataFrame.groupby('Symptoms').Status.value_counts().unstack().fillna(0)
+most_common=common_symptoms.sort_values(by='confirmed',ascending=False)
+# plotting a bar graph for  top 10 most common symptoms of Monkeypox in confirmed cases
+
+most_common.head(10).plot(kind='bar')
+plt.style.use('seaborn-whitegrid')
+plt.title('Common Symptoms of Monkeypox in order of frequency ')
+
+
+# In the above graph, we can see that most common symptom of Monkeypox is 'genital ulcer lesions'.Genital ulcer, oral ulcers, rashes and fever can be regarded as common symptoms of Monkeypox.
+#      Next, we will see if Monkeypox is more common in males or females.
+
+# In[6]:
+
+
+import numpy as np
+# tidying data, removing misplaced values
+wrongdata=['22/08/2022', '3/06/2022']
+
+dataFrame['Gender'].replace(wrongdata, ' ', inplace=True)
+
+# extracting Gender data of Monkeypox cases
+data=dataFrame.groupby('Gender').Status.count().plot(kind='bar')
+
+# Plotting graph
+plt.style.use('seaborn-pastel')
+plt.xlabel('Gender', color='r')
+plt.ylabel('Monkeypox cases', color='g')
+plt.xticks(color='r')
+plt.yticks(color='r')
+plt.stat='count'
+plt.title('Gender proportion of cases of MonkeyPox in 2022', color='r')
+plt.show()
+
+
+# In[ ]:
+
+
+The graph 'Gender proportion of cases of MonkeyPox in 2022' clealry shows that although women have been affected rarely, its highly 
+  common among men. This is an important character and can lead us to investigate what makes this communicable virus  more common 
+  in  men, while it has affected females somtimes too.
+     Now, we will see how fatal this illness is.
+
+
+# In[7]:
+
+
+# to count the number of deaths so far from Monkeypox
+Number_of_Deaths=dataFrame['Date_death'].notnull().sum()
+print('Number of deaths so far from MonkeyPox is',Number_of_Deaths)
+
+
+# In[8]:
+
+
+#Finding deaths and gender
+falsedata=['22/08/2022', '3/06/2022']
+dataFrame['Gender'].replace(falsedata,'0',inplace=True)
+dataFrame.groupby('Gender').Date_death.count().plot(kind='bar',color='r')
+plt.title('Gender proportion in deaths due to Monkeypox')
+plt.xlabel('Gender', color='b')
+plt.ylabel('Number of Deaths from Monkeypox', color='b')
+
+
+#   We learned that so far in 2022, 83 people are recorded to have died of Monkeypox so far. All of deaths occured in males who were affected by Monkeypox. No female is recorded to have died of Monkeypox in 2022, so far. Lets see which countries are moe asffected by Monkeypox deaths.
+
+# In[9]:
+
+
+# importing libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+get_ipython().run_line_magic('matplotlib', 'inline')
+# Tidying the data column
+Deaths=dataFrame[dataFrame['Date_death'].notnull()]
+# Grouping and selecting needed data. Selecting to plot horizontal bvar graph.
+graph=Deaths.groupby('Country').Date_death.count().plot(kind='barh')
+# Choosing style and filling characteristics of the graph.
+plt.style.use('seaborn-whitegrid')
+plt.xlabel('Number of deaths from Monkeypox')
+plt.title('Countries associated with highest rate of Death from Monkeypox',color='r')sss
+
+
+# In the graph of 'Countries associated  with highest rate of Death from Monkeypox', we can see that Democratic Republic of The Congo' sits on top with 54 person dead from Monkeypox out of 83 worldwide. We can see that other African Countries are next in number of deaths.Also, though US have very high number of cases of Monkeypox, but fortunately Mortality from Monkeypox is quite low there. 
+#   The high Mortality from Monkeypox in African countries, especially Democratic Republic of The Congo is very obvious in the graph. This invites further research to find the reason of this disproportion. I will investigate  if poverty in countries are related to number of deaths from Monkeypox. To do this, I will import and read a csv file that shows rate of poverty in different countries . This data is sourced from World Bank data on global economy.The link to this data is https://worldpopulationreview.com/country-rankings/poverty-rate-by-country.
+
+# In[21]:
+
+
+# importing libraries
+import csv
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+# reading both files with csv
+poverty_data=pd.read_csv(r"C:\Users\dzoha\Downloads\WHO POVERTY DATA.csv",low_memory=False)
+dataFrame=pd.read_csv(r"C:\Users\dzoha\OneDrive\Documents\monkeypox_df.csv",low_memory=False)
+
+# Extracting Monkeypox death in different country information from Global Monkeypox Data file
+Monkeypox_deaths=dataFrame.groupby('Country').Date_death.count().dropna()
+
+# tidying data
+df=Monkeypox_deaths.loc[(Monkeypox_deaths!=0)]
+# From global poverty data, slicing the dataframe with the help of index, to get data for 
+#only those countries where people have died from Monkeypox, as per our monkeypox data file.
+
+Poverty_related_data=poverty_data.iloc[[7,76,8,36,30,34,90,24,104,93,120,96,82,57,64,140]]
+Poverty_related_data.reset_index(drop=True,inplace=True)
+
+# adding new column of number of deaths for each country in the new selected dataframe
+
+data=Poverty_related_data.assign(Monkeypox_deaths=[54,4,2,4,1,3,2,1,2,2,1,1,1,2,1,1])
+
+# setting dataframe index to country
+
+new_dataFrame=data.set_index('country')
+
+# Changing column names to suitable ones
+
+new_dataFrame.rename(columns={'percPoverty':"%Poverty"}, inplace=True)
+new_dataFrame.rename(columns={'lessThan10': 'lessthan10USD','lessThan550':'lessthan5.50USD'},inplace=True)
+
+# to display the dataframe from ehich pairplot will be constructed to show correlation.
+print(new_dataFrame)
+
+# plotting a pairplot with the help of seaborn library to find any correlation between number of monkeypox deaths and and poverty in Monkeypox affected countries.
+sns.set()
+sns.pairplot(new_dataFrame[['Monkeypox_deaths','%Poverty','lessthan10USD', 'lessthan5.50USD']])
+
+
+# From the above table and pairplot, we can see that there is a clear positive correlation between number of deaths in Monkepox affected countries to rate of poverty in that country.
+
+# In[22]:
+
+
+# plotting a graph between recorded symptoms and death ,
+#only few of patients that died of Monkepox had their symptoms recorded, the viualisation of which is as follows.
+plt.title('Symptoms of Mokeypox that are more associated with Deaths due to Monkeypox')
+dataFrame.groupby('Symptoms').Date_death.count().plot(kind='pie')
+
+
+# In[23]:
+
+
+# All Monkeypox ppatients with encephalitis recorded in the data has died.
+dataFrame[dataFrame['Symptoms']=='encephalitis']
+#This shows that there were two cases with encephalitis and both of them died, making encephalitis be knows as a lethal symptom of Monkeypox.
+
+
+# In[ ]:
+
+
+Encephalitis(Brain inflammation) is the nmost fatal symptom of Monkeypox.
+
+
+# In[36]:
+
+
+# importing libraries
+import csv
+import pandas as pd
+import matplotlib.pyplot as plt
+get_ipython().run_line_magic('matplotlib', 'inline')
+import datetime
+
+# reading data
+dataFrame=pd.read_csv(r"C:\Users\dzoha\OneDrive\Documents\monkeypox_df.csv",low_memory=False)
+
+# diving date column into month and year
+dataFrame['Date_confirmation']=pd.to_datetime(dataFrame.Date_confirmation,format='%d/%m/%Y')
+dataFrame['confirmation_month']=dataFrame['Date_confirmation'].dt.month
+
+# tidying data
+falsedata=[11.0,12.0] 
+dataFrame['confirmation_month'].replace(falsedata,6.0, inplace=True)
+
+#extracting needed data
+
+coll3=dataFrame.groupby('Country').confirmation_month.value_counts().sort_values(ascending=False).unstack().fillna(0)
+
+# importing library to plot the heatmap.
+import seaborn as sns
+
+# setting for plotting heatmap
+sns.set(font_scale=0.8)
+sns.heatmap(data=coll3.head(10),cmap="Blues")
+plt.title('Correlation between months of year 2022  and the countries with highest incidence of Monkeypox')
+
+
+# In[26]:
+
+
+# to get cases of monkeypox per month
+# tidying data
+
+falsedata=['https://www.publichealthontario.ca/-/media/Documents/M/2022/monkeypox-episummary.pdf?sc_lang=en']
+dataFrame['Status'].replace(falsedata,'NaN', inplace=True)
+
+# selecting needed data and plotting in the graph
+df=dataFrame.groupby('confirmation_month').Status.value_counts().unstack().fillna(0).plot(kind='bar')
+
+#Labelling the graph
+plt.title('Cases of Monkeypox per month')
+plt.xlabel('confirmation_months')
+plt.ylabel('Number of Monkeypox Cases')
+
+
+# The above graph clearly demonstrate that cases of Monkeypox started appearing in the month of May and increased so much that  in August, the incidence of cases rose very high to almost 30,000 cases in that month alone. Luckily, the incidence of cases dropped to almost less than half in Septmeber . 
+#     Next , we will see the association of travel to different countries with cases of Monkeypox illness.
+
+# In[29]:
+
+
+# extracting and tidying suitable parts of data, travel history of confirmed cases of Monkeypox
+col1=dataFrame.groupby('Status').Travel_history_location.value_counts().sort_values(ascending=False).unstack().fillna(0)
+
+# transposing dataframe
+colp=col1.T # Transposing dataFrame
+
+# sorting confirmed cases in decreasing order
+top_travel_cases=colp.sort_values('confirmed',ascending=False)
+
+# plotting 
+top_travel_cases.head(15).plot(kind='barh',color='g')
+plt.title('Travel destinations most frequently associated with cases of Monkeypox',color='r')
+plt.xlabel('Number of Monkeypox positive cases associated with travel history to the country',color='b')
+plt.ylabel("Travel_history_location", color='b')
+
+
+# In the above graph, we can see that travel to Europe is highly associated with cases of Monkeypox illness.
+#   Now, we will make a heatmap and see which travel to which countries are related to Monkeypox cases in the Monkeypox affected Countries.
+
+# In[30]:
+
+
+# importing libraries
+
+import csv
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+# reading file
+dataFrame=pd.read_csv(r"C:\Users\dzoha\OneDrive\Documents\monkeypox_df.csv",low_memory=False)
+
+# extracting needed data parts
+data=dataFrame.groupby('Country').Travel_history_location.value_counts().sort_values().unstack().fillna(0)
+
+#plotting heatmap
+fig,bx=plt.subplots(figsize=(30,30))
+sns.set(font_scale=1.4)
+
+plt.xticks(rotation=15,ha='center',fontsize=20,color='b',weight='bold')
+plt.yticks(label='Countries with Monkeypox Cases', color='r',fontsize=20, weight='bold')
+bx=sns.heatmap(data,linewidths=.5,cmap="RdBu",annot=True,fmt='.0f').set_title('Correlation between MonkeyPox cases in different countries with History and location of travel',color='g',fontsize=30)
+plt.xlabel(' Travel History Of Monkeypox Cases by Location of Travel', fontsize=20, color='r', weight='bold')
+plt.ylabel('Countries with Monkeypox cases related to Travel', color='b', fontsize=20, weight='bold')
+
+
+# The heatmap above is a very interesting correlation representation between travel history to different countries and number of Monkeypox cases in the Monkeypox -affected Countries. Lightblue box shows a positive correlation while dark blue box shows a strong correlation. 
+#    Some interesting observation in this heatmap are that travel to Europe has the most blue boxes and hence most strongly associated with Monkeypox cases Germany, Argentina and Brazil United states .
+
+# In[33]:
+
+
+# importing libraries
+import csv
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+get_ipython().run_line_magic('matplotlib', 'inline')
+# reading data
+dataFrame=pd.read_csv(r"C:\Users\dzoha\OneDrive\Documents\monkeypox_df.csv",low_memory=False)
+
+# grouping to extraxt suitable data and tidying
+data=dataFrame.groupby('Country').Travel_history_location.value_counts().sort_values().unstack().fillna(0)
+
+#plotting heatmap
+
+fig, ax = plt.subplots(figsize=(20,20)) 
+sns.set(font_scale=0.8)
+plt.xticks( rotation=15, ha='center', fontsize=14, color='r',weight='bold') 
+plt.yticks( color='b',fontsize=14,weight='bold')
+           
+
+
+ax=sns.heatmap(data.T.corr(), linewidths=.5,cmap="Blues",annot=True,fmt='.1f').set_title('Correlation between Monkeypox cases among different Countries',color='y',fontsize=25)
+
+
+# The above graph shows if the number of Monkeypox cases in one country is correlated to the number of Monkeypox cases in another Monkeypox affcted countries. Many boxes have 0.7 and 0.8 values which show a positive correlation.There are even-1 values too, which shows an inverse correlation.
+
+# This was the notebook of Analysis of Global Monkeypox cases during 2022 Monkeypox Breakout so far. I hope it was informative and interesting. Thank you.
